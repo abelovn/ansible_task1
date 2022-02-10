@@ -1,0 +1,54 @@
+---
+- name:
+  hosts: all
+  tasks:
+
+    - name: Install httpd
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Start service httpd, if not running
+      service:
+        name: httpd
+        state: started
+
+    - name: Create file with content
+      copy:
+        content: 'Welcome to my web server'
+        dest: /var/www/html/index.html
+
+    - name: Install firewalld
+      yum:
+        name: firewalld
+        state: latest
+
+    - name: add http service to firewalld
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+      notify:
+        - reload
+        - restart
+
+    - name: enable 80/tcp
+      firewalld:
+        zone: public
+        port: 80/tcp
+        permanent: true
+        state: enabled
+      notify:
+        - reload
+        - restart
+
+  handlers:
+      - name: reload
+        systemd:
+         name: firewalld
+         state: reloaded
+
+      - name: restart
+        systemd:
+         name: firewalld
+         state: restarted

@@ -1,0 +1,37 @@
+---
+- name:
+  hosts: all
+  tasks:
+
+
+    - name: del http service from firewalld
+      firewalld:
+        service: http
+        permanent: yes
+        state: disabled
+      notify:
+        - reload
+
+    - name: disable 80/tcp
+      firewalld:
+        zone: public
+        port: 80/tcp
+        permanent: true
+        state: disabled
+      notify:
+         - reload
+
+    - name: remove file
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: remove httpd
+      yum:
+        name: httpd
+        state: absent
+  handlers:
+      - name: reload
+        systemd:
+          name: firewalld
+          state: reloaded

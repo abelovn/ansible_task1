@@ -1,0 +1,100 @@
+---
+- name:
+  hosts: all
+  tasks:
+
+
+   - name: check if biosdevname has a right value (0) in GRUB_CMDLINE
+     lineinfile:
+       backup: true
+       path: /etc/default/grub
+       regexp: '^GRUB_CMDLINE_LINUX=\".*biosdevname=0'
+       state: absent
+     check_mode: true
+     register: grub_cmdline_check
+     changed_when: false
+
+   - name: insert biosdevname=0 if value wrong
+     lineinfile:
+       backrefs: true
+       path: /etc/default/grub
+       regexp: '^(GRUB_CMDLINE_LINUX=\".*)(biosdevname=[^0])(.*)\"$'
+       line: '\1 biosdevname=0\3"'
+     when: grub_cmdline_check.found == 0
+     notify:
+      - update grub
+      - restart host
+
+   - name: check if biosdevname=0 is exixts in GRUB_CMDLINE
+     lineinfile:
+       backup: true
+       path: /etc/default/grub
+       regexp: '^GRUB_CMDLINE_LINUX=\".*biosdevname=0'
+       state: absent
+     check_mode: true
+     register: grub_cmdline_check
+     changed_when: false
+
+   - name: insert biosdevname=0 if missing
+     lineinfile:
+       backrefs: true
+       path: /etc/default/grub
+       regexp: "^(GRUB_CMDLINE_LINUX=\".*)\"$"
+       line: '\1 biosdevname=0"'
+     when: grub_cmdline_check.found == 0
+     notify:
+      - update grub
+      - restart host
+
+
+   - name: check if net.ifnames=0 has a right value (0) in GRUB_CMDLINE
+     lineinfile:
+       backup: true
+       path: /etc/default/grub
+       regexp: '^GRUB_CMDLINE_LINUX=\".*net.ifnames=0'
+       state: absent
+     check_mode: true
+     register: grub_cmdline_check
+     changed_when: false
+
+   - name: insert net.ifnames=0 if value wrong
+     lineinfile:
+       backrefs: true
+       path: /etc/default/grub
+       regexp: '^(GRUB_CMDLINE_LINUX=\".*)(net.ifnames=[^0])(.*)\"$'
+       line: '\1 net.ifnames=0\3"'
+     when: grub_cmdline_check.found == 0
+     notify:
+      - update grub
+      - restart host
+
+
+   - name: check if net.ifnames=0  exixts in GRUB_CMDLINE
+     lineinfile:
+       backup: true
+       path: /etc/default/grub
+       regexp: '^GRUB_CMDLINE_LINUX=\".*net.ifnames=0'
+       state: absent
+     check_mode: true
+     register: grub_cmdline_check
+     changed_when: false
+
+   - name: insert net.ifnames=0 if missing
+     lineinfile:
+       backrefs: true
+       path: /etc/default/grub
+       regexp: "^(GRUB_CMDLINE_LINUX=\".*)\"$"
+       line: '\1 net.ifnames=0"'
+     when: grub_cmdline_check.found == 0
+     notify:
+      - update grub
+      - restart host
+
+
+  handlers:
+
+      - name: update grub
+        command: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+      - name: restart host
+        reboot:

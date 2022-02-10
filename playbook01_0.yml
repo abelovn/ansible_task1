@@ -1,0 +1,15 @@
+---
+- name: change source mirracles in repo files
+  hosts: all
+  tasks:
+  - name: find repo files
+    find:
+      paths: /etc/yum.repos.d
+      patterns: '*.repo'
+    register: files_to_change
+
+  - name: fix repo files
+    copy:
+      src: "{{ item.path }}"
+      dest: "{{ item.path }}"
+    with_items: "{{ files_to_change.files }}"
